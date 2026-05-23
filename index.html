@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner‑Cat 2026‑2035</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="glass">
+    <div class="header-controls">
+        <button id="accountBtn" class="btn-glass">👤 Аккаунт</button>
+        <button id="showHelp" class="btn-glass btn-accent">❓ Инструкция</button>
+    </div>
+
+    <h1>Planner‑Cat 2026‑2035</h1>
+
+    <div class="cat-container">
+        <div class="cat">
+            <img src="https://placehold.co/150x150/222/orange?text=Cat" alt="Кот" id="catImg">
+            <p id="catState" style="margin-top:5px; font-weight:bold;">Нормальный кот</p>
+        </div>
+        <div class="happiness-scale">
+            <div class="scale-label">Шкала счастливости</div>
+            <div class="progress-bar">
+                <div id="happinessFill" class="progress-fill"></div>
+            </div>
+            <div id="happinessText" class="percent-text">0%</div>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="calendar glass">
+        <div class="month-selector">
+            <button id="prevMonth">←</button>
+            <span id="monthLabel"></span>
+            <button id="nextMonth">→</button>
+        </div>
+        <table id="calendarTable">
+            <thead>
+                <tr><th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+
+    <section class="task-panel glass">
+        <h2>Задачи на выбранный день</h2>
+        <div class="add-task">
+            <button id="addTaskBtn">+ Добавить событие</button>
+        </div>
+        <div class="filters">
+            <select id="filterSelect">
+                <option value="">Все задачи</option>
+            </select>
+        </div>
+        <ul id="taskList"></ul>
+    </section>
+</main>
+
+<footer>
+    <p>© 2026‑2035 Planner‑Cat. Все права защищены.</p>
+</footer>
+
+<!-- МОДАЛЬНОЕ ОКНО: АККАУНТ -->
+<div id="authModal" class="modal hidden">
+    <div class="modal-content glass">
+        <span class="close" onclick="document.getElementById('authModal').classList.add('hidden')">&times;</span>
+        <h2>Управление аккаунтом</h2>
+        <div id="guestView">
+            <p style="margin: 15px 0; line-height: 1.5;">Создайте аккаунт, чтобы задачи сохранялись за вами на любом устройстве.</p>
+            <button onclick="Auth.register()" class="btn-glass btn-accent full-w">Зарегистрироваться</button>
+            <div style="text-align:center; margin:10px 0; opacity:0.6;">или войдите по коду</div>
+            <input type="text" id="loginInput" placeholder="Введите 4-значный код" maxlength="4" style="text-align:center; margin-bottom:10px;">
+            <button onclick="Auth.login()" class="btn-glass full-w">Войти</button>
+        </div>
+        <div id="userView" style="display:none; text-align:center;">
+            <p>Ваш ID:</p>
+            <div id="userIdDisplay" style="font-size:2rem; font-weight:bold; color:#ffca28; margin:10px 0;"></div>
+            <p style="font-size:0.85rem; opacity:0.7; margin-bottom:20px;">Сохраните этот код для входа с других устройств</p>
+            <button onclick="Auth.logout()" class="btn-glass full-w">Выйти из аккаунта</button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО: ЗАДАЧА -->
+<div id="taskModal" class="modal hidden">
+    <div class="modal-content glass">
+        <span class="close" id="closeTask">&times;</span>
+        <h2 id="taskModalTitle">Новая задача</h2>
+        
+        <label>Название (Enter для сохранения)</label>
+        <input type="text" id="taskTitle" placeholder="Краткая суть...">
+
+        <label>Подробности</label>
+        <textarea id="taskText" rows="4" placeholder="Место для подробного описания..." style="resize:vertical;"></textarea>
+
+        <div class="form-row">
+            <div style="flex:1">
+                <label>Время</label>
+                <input type="time" id="taskTime">
+            </div>
+            <div style="flex:1">
+                <label>Тег</label>
+                <input type="text" id="taskTag" placeholder="#работа">
+            </div>
+        </div>
+
+        <label>Тип повторения</label>
+        <select id="taskRepeatType">
+            <option value="none">Не повторять</option>
+            <option value="daily">Ежедневно</option>
+            <option value="weekly">Еженедельно</option>
+            <option value="monthly">Ежемесячно (в этот же день)</option>
+            <option value="monthlyCustom">🗓 В выбранные дни месяца</option>
+            <option value="yearly">Ежегодно</option>
+            <option value="specific">До определенной даты</option>
+        </select>
+
+        <!-- НОВЫЙ БЛОК: Выбор дней месяца -->
+        <div id="customDaysContainer" class="custom-days-grid-wrapper" style="display:none;">
+            <label>Выберите числа месяца:</label>
+            <div class="custom-days-grid" id="daysGrid"></div>
+        </div>
+
+        <div id="specificDateContainer" style="display:none;">
+            <label>Повторять до:</label>
+            <input type="date" id="taskRepeatEnd">
+        </div>
+
+        <input type="hidden" id="editTaskIndex" value="-1">
+        <button id="saveTaskBtn" class="btn-glass btn-accent full-w">Сохранить</button>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО: ИНСТРУКЦИЯ -->
+<div id="helpModal" class="modal hidden">
+    <div class="modal-content glass">
+        <span class="close" id="closeHelp">&times;</span>
+        <h2>Инструкция v2.1</h2>
+        <ol style="padding-left:20px; line-height:1.8; margin-top:15px;">
+            <li><strong>Аккаунт:</strong> Нажмите кнопку слева сверху. Зарегистрируйтесь и получите 4-значный код.</li>
+            <li><strong>Календарь:</strong> Работает строго с 2026 по 2035 год.</li>
+            <li><strong>Особые повторы:</strong> Выберите «В выбранные дни месяца», чтобы задача повторялась в конкретные числа. Эти дни подсветятся золотым в календаре!</li>
+            <li><strong>Задачи:</strong> Используйте большое поле для подробностей. Нажмите <em>Enter</em> в поле названия для быстрого добавления.</li>
+            <li><strong>Редактирование:</strong> Нажимайте на карандаш (✎) рядом с задачей.</li>
+            <li><strong>Кот:</strong> Следите за шкалой счастья! Выполняйте дела вовремя.</li>
+        </ol>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+
+
